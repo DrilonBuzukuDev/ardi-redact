@@ -1,0 +1,29 @@
+{
+  "name": "@ardi/designsystem",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "peerDependencies": {
+    "@mantine/core": "^9.5.2",
+    "@mantine/dates": "^9.5.2",
+    "@mantine/dropzone": "^9.5.2",
+    "@mantine/hooks": "^9.5.2",
+    "lucide-react": "^1.37.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@mantine/core": "9.5.2",
+    "@mantine/dates": "9.5.2",
+    "@mantine/dropzone": "9.5.2",
+    "@mantine/hooks": "9.5.2",
+    "@types/react": "^19.3.0",
+    "lucide-react": "^1.46.0"
+  }
+}
