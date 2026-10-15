@@ -1,0 +1,13 @@
+build/bin/
+build/windows/*.exe
+frontend/node_modules/
+frontend/dist/
+frontend/wailsjs/
+__pycache__/
+.pytest_cache/
+.venv/
+*.py[cod]
+.DS_Store
+frontend/test-results/
+frontend/playwright-report/
+frontend/package.json.md5
