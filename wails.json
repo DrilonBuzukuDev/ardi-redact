@@ -1,0 +1,20 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Ardi Redact",
+  "outputfilename": "ardi-redact",
+  "frontend:install": "pnpm install --frozen-lockfile",
+  "frontend:build": "pnpm build",
+  "frontend:dev:watcher": "pnpm dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "DrilonBuzukuDev",
+    "email": "drilon.buzuku@protonmail.com"
+  },
+  "info": {
+    "companyName": "Ardi",
+    "productName": "Ardi Redact",
+    "productVersion": "0.1.0",
+    "copyright": "Copyright Ardi",
+    "comments": "Local document redaction"
+  }
+}

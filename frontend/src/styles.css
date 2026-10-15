@@ -1,0 +1,31 @@
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--mantine-color-body);
+}
+.app-shell {
+  min-height: 100dvh;
+}
+.document-dropzone {
+  background: var(--mantine-color-white);
+  border-color: var(--mantine-color-neutral-3);
+  cursor: pointer;
+}
+.document-dropzone[data-error] {
+  border-color: var(--mantine-color-error-6);
+}
+.file-path {
+  overflow-wrap: anywhere;
+}
+button:focus-visible {
+  outline: 2px solid var(--mantine-color-accent-6);
+  outline-offset: 3px;
+}
+
+.document-dropzone {
+  --wails-drop-target: drop;
+}
+.document-dropzone.wails-drop-target-active {
+  border-color: var(--mantine-color-accent-6);
+  background: var(--mantine-color-accent-0);
+}
