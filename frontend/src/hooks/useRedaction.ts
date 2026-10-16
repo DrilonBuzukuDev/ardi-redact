@@ -72,7 +72,7 @@ export function useRedaction() {
   const reveal = async () => {
     if (!result) return;
     try {
-      await revealDocument(result.output);
+      await revealDocument();
     } catch {
       setError(
         "Could not open the folder. The saved document path is shown above.",
@@ -93,6 +93,10 @@ export function useRedaction() {
     setLanguage,
     busy,
     result,
+    total: Object.values(result?.counts ?? {}).reduce(
+      (sum, count) => sum + count,
+      0,
+    ),
     error,
     fileError,
     select,

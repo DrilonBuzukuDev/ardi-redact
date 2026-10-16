@@ -5,11 +5,9 @@ import {
 } from "../../wailsjs/go/main/App";
 import { OnFileDrop, OnFileDropOff } from "../../wailsjs/runtime/runtime";
 
-export interface RedactionResult {
-  output: string;
-  counts: Record<string, number>;
-  warnings: string[];
-}
+import type { engine } from "../../wailsjs/go/models";
+
+export type RedactionResult = engine.Result;
 export const extensions = ["docx", "md", "txt", "srt", "vtt"];
 export async function selectDocument() {
   if (!window.go) throw new Error("Open the desktop app to choose a document.");
@@ -24,4 +22,4 @@ export const redactDocument = (
   path: string,
   language: string,
 ): Promise<RedactionResult> => Redact(path, language);
-export const revealDocument = (_path: string) => RevealDocument();
+export const revealDocument = () => RevealDocument();

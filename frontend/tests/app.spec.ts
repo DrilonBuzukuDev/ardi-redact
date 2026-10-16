@@ -86,7 +86,7 @@ test("setup retry, missing-file validation, language, redaction and folder actio
   await page.getByRole("radio", { name: "German", exact: true }).check();
   await redact.click();
   await expect(
-    page.getByRole("heading", { name: "Your document is ready" }),
+    page.getByRole("heading", { name: "2 personal details redacted" }),
   ).toBeVisible();
   await expect(page.getByText("Review preserved metadata.")).toBeVisible();
   await page.getByRole("button", { name: "Go to document folder" }).click();
