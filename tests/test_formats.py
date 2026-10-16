@@ -155,3 +155,73 @@ def test_docx_hyperlink_text_and_unsupported_content(tmp_path: Path, detector: D
     xml = archive.read("word/document.xml")
     assert b"[PERSON_1]" in xml and b"Alice" in xml
     assert b"John" not in xml and b"Smith" not in xml
+
+
+def test_custom_save_location(tmp_path: Path, detector: Detector) -> None:
+  source = tmp_path / "notes.txt"
+  source.write_text("John Smith")
+  folder = tmp_path / "chosen"
+  folder.mkdir()
+  output = folder / "shared.txt"
+  result = process_file(source, detector, output=output)
+  assert result.output == output
+  assert output.read_text() == "[PERSON_1]"
+  assert source.read_text() == "John Smith"
+  assert not list(folder.glob(".ardi-redact-*"))
+
+
+@pytest.mark.parametrize("target", ["existing", "original", "symlink"])
+def test_custom_save_never_overwrites(tmp_path: Path, detector: Detector, target: str) -> None:
+  source = tmp_path / "notes.txt"
+  source.write_text("John Smith")
+  output = tmp_path / "shared.txt"
+  if target == "original":
+    output = source
+  elif target == "symlink":
+    output.symlink_to(source)
+  else:
+    output.write_text("Keep this copy")
+  before = output.read_bytes()
+  with pytest.raises((FileExistsError, ValueError)):
+    process_file(source, detector, output=output)
+  assert output.read_bytes() == before
+  assert source.read_text() == "John Smith"
+
+
+def test_concurrent_output_is_preserved(tmp_path: Path, detector: Detector, monkeypatch) -> None:
+  from ardi_redact import processing
+
+  source = tmp_path / "notes.txt"
+  source.write_text("John Smith")
+  output = tmp_path / "shared.txt"
+  link = processing.os.link
+
+  def publish(temporary, destination):
+    output.write_text("Concurrent copy")
+    link(temporary, destination)
+
+  monkeypatch.setattr(processing.os, "link", publish)
+  with pytest.raises(FileExistsError):
+    process_file(source, detector, output=output)
+  assert output.read_text() == "Concurrent copy"
+  assert source.read_text() == "John Smith"
+  assert not list(tmp_path.glob(".ardi-redact-*"))
+
+
+def test_failed_write_cleans_up(tmp_path: Path, detector: Detector, monkeypatch) -> None:
+  from ardi_redact.text_formats import TextFile
+
+  source = tmp_path / "notes.txt"
+  source.write_text("John Smith")
+  output = tmp_path / "shared.txt"
+
+  def fail_write(self, edits, stream):
+    stream.write(b"partial")
+    raise OSError("Write failed")
+
+  monkeypatch.setattr(TextFile, "write", fail_write)
+  with pytest.raises(OSError):
+    process_file(source, detector, output=output)
+  assert not output.exists()
+  assert source.read_text() == "John Smith"
+  assert not list(tmp_path.glob(".ardi-redact-*"))

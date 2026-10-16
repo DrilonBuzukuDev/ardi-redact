@@ -23,11 +23,11 @@ def output_path(path: Path) -> Path:
 
 
 def process_file(
-  path: Path, detector: Detector, *, dry_run: bool = False, overwrite: bool = False
+  path: Path, detector: Detector, *, output: Path | None = None
 ) -> Result:
-  output = output_path(path)
-  if not dry_run and output.exists() and not overwrite:
-    raise FileExistsError("Output already exists; use --overwrite to replace it.")
+  output = output if output is not None else output_path(path)
+  if output.exists():
+    raise FileExistsError("A file already exists at this location. Choose a different name or folder.")
   if output.is_symlink() or (output.exists() and output.samefile(path)):
     raise ValueError("Output points to an original or a symlink; refusing to replace it.")
   prepared = prepare(path)
@@ -39,18 +39,14 @@ def process_file(
       prepared.units, detector.batch(unit.text for unit in prepared.units), strict=True
     )
   ]
-  if not dry_run:
-    descriptor, temporary = tempfile.mkstemp(prefix=".ardi-redact-", dir=path.parent)
-    try:
-      with os.fdopen(descriptor, "wb") as stream:
-        prepared.write(edits, stream)
-        stream.flush()
-        os.fsync(stream.fileno())
-      if overwrite:
-        os.replace(temporary, output)
-      else:
-        # Atomic exclusive publication also protects against concurrent runs.
-        os.link(temporary, output)
-    finally:
-      Path(temporary).unlink(missing_ok=True)
+  descriptor, temporary = tempfile.mkstemp(prefix=".ardi-redact-", dir=output.parent)
+  try:
+    with os.fdopen(descriptor, "wb") as stream:
+      prepared.write(edits, stream)
+      stream.flush()
+      os.fsync(stream.fileno())
+    # Atomic exclusive publication also protects against concurrent runs.
+    os.link(temporary, output)
+  finally:
+    Path(temporary).unlink(missing_ok=True)
   return Result(output, redactor.counts, prepared.warnings)
