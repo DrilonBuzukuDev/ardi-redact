@@ -61,7 +61,7 @@ func TestExtractEmbeddedEngine(t *testing.T) {
 	if err := manager.extractSources(); err != nil {
 		t.Fatal(err)
 	}
-	for _, path := range []string{"bridge.py", "ardi_redact/formats.py", "ardi_redact/processing.py"} {
+	for _, path := range []string{"bridge.py", "ardi_redact/formats.py", "ardi_redact/docx_format.py", "ardi_redact/text_formats.py", "ardi_redact/processing.py"} {
 		if _, err := os.Stat(filepath.Join(root, "engine", path)); err != nil {
 			t.Fatal(err)
 		}
