@@ -28,6 +28,8 @@ export function RedactPage() {
                   <RedactionResult
                     output={flow.result.output}
                     total={flow.total}
+                    busy={flow.busy}
+                    onSave={flow.save}
                     warnings={flow.result.warnings}
                     onReveal={flow.reveal}
                     onReset={flow.reset}

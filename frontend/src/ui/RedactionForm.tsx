@@ -76,7 +76,7 @@ export function RedactionForm({
         <Text size="xs" c="dimmed" ta="center" role="status">
           {busy
             ? "Processing locally. This may take a moment."
-            : "A new copy is saved beside your original."}
+            : "Redact your document, then choose where to save the copy."}
         </Text>
       </Stack>
     </>

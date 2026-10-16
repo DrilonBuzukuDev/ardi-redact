@@ -13,11 +13,16 @@ spaCy, and language models. End users do not install Python, uv, Node, or Go.
    and retried. Allow several minutes and disk space for the runtime and models.
 3. Drop a DOCX, Markdown, TXT, SRT, or VTT file, or select **Select file**.
 4. Select the document language and **Redact document**.
-5. Select **Go to document folder** to find the new `filename_pii.ext` copy.
+5. When redaction finishes, select **Save redacted file** and choose where to
+   save the copy. The save dialog defaults to the original document’s folder
+   and suggests `filename_pii.ext`.
+6. Select **Go to document folder** to find the saved copy.
 
 Setup happens inside the app on first launch, after the OS installer finishes.
 It requires internet access to GitHub and PyPI. Subsequent redaction works
 offline. Originals and existing redacted copies are never overwritten.
+Redaction prepares a temporary copy. Canceling the save dialog keeps it ready
+to save later; saving, starting over, or closing the app removes it.
 Missing-file errors appear beside the dropzone. Review warnings and the saved
 copy before sharing it: statistical detection can miss personal information.
 DOCX metadata and unsupported embedded content are preserved, with warnings.

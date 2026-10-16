@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -20,12 +21,23 @@ func (m *Manager) Redact(ctx context.Context, path, language string) (Result, er
 	if path == "" {
 		return Result{}, errors.New("Choose a file to redact.")
 	}
+	m.discardRedaction()
+	directory, err := os.MkdirTemp("", "ardi-redact-")
+	if err != nil {
+		return Result{}, errors.New("Could not create a temporary document. Check available disk space.")
+	}
+	defer func() {
+		if m.temporaryDirectory != directory {
+			os.RemoveAll(directory)
+		}
+	}()
+	outputPath := filepath.Join(directory, "redacted"+filepath.Ext(path))
 	if err := m.extractSources(); err != nil {
 		return Result{}, errors.New("Could not prepare the document engine.")
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	command := process.Command(ctx, m.python(), "-I", filepath.Join(m.root, "engine", "bridge.py"), path, language)
+	command := process.Command(ctx, m.python(), "-I", filepath.Join(m.root, "engine", "bridge.py"), path, language, outputPath)
 	// Never expose third-party stderr: parser errors can contain document text.
 	output, err := command.Output()
 	if err != nil {
@@ -42,7 +54,10 @@ func (m *Manager) Redact(ctx context.Context, path, language string) (Result, er
 		return Result{}, errors.New("No redacted document was produced.")
 	}
 	m.state.Lock()
-	m.lastOutput = result.Output
+	m.lastOutput = ""
 	m.state.Unlock()
+	m.temporaryDirectory = directory
+	m.pendingOutput = outputPath
+	result.Output = "" // Temporary paths are private to the engine.
 	return result, nil
 }

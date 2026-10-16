@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   extensions,
+  discardRedaction,
+  saveRedactedFile,
   listenForDocuments,
   redactDocument,
   revealDocument,
   selectDocument,
+  selectOutput,
   type RedactionResult,
 } from "../api/documents";
 
@@ -59,9 +62,27 @@ export function useRedaction() {
     locked.current = true;
     setBusy(true);
     setError("");
+    setFileError("");
     setResult(null);
     try {
       setResult(await redactDocument(path, language));
+    } catch (cause) {
+      setFileError(String(cause instanceof Error ? cause.message : cause));
+    } finally {
+      locked.current = false;
+      setBusy(false);
+    }
+  };
+  const save = async () => {
+    if (locked.current || !result || result.output) return;
+    locked.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const output = await selectOutput(path);
+      if (!output) return;
+      const saved = await saveRedactedFile(output);
+      setResult({ ...result, output: saved });
     } catch (cause) {
       setError(String(cause instanceof Error ? cause.message : cause));
     } finally {
@@ -79,12 +100,21 @@ export function useRedaction() {
       );
     }
   };
-  const reset = () => {
-    if (!locked.current) {
+  const reset = async () => {
+    if (locked.current) return;
+    locked.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      await discardRedaction();
       setPath("");
       setResult(null);
-      setError("");
       setFileError("");
+    } catch {
+      setError("Could not discard the temporary copy. Try again.");
+    } finally {
+      locked.current = false;
+      setBusy(false);
     }
   };
   return {
@@ -101,6 +131,7 @@ export function useRedaction() {
     fileError,
     select,
     run,
+    save,
     reveal,
     reset,
   };

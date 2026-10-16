@@ -1,7 +1,10 @@
 import {
   SelectDocument,
+  SelectOutput,
   Redact,
   RevealDocument,
+  SaveRedactedFile,
+  DiscardRedaction,
 } from "../../wailsjs/go/main/App";
 import { OnFileDrop, OnFileDropOff } from "../../wailsjs/runtime/runtime";
 
@@ -22,4 +25,9 @@ export const redactDocument = (
   path: string,
   language: string,
 ): Promise<RedactionResult> => Redact(path, language);
+export const selectOutput = (path: string): Promise<string> =>
+  SelectOutput(path);
 export const revealDocument = () => RevealDocument();
+
+export const saveRedactedFile = (output: string) => SaveRedactedFile(output);
+export const discardRedaction = () => DiscardRedaction();

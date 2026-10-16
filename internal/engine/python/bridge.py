@@ -13,18 +13,20 @@ from ardi_redact.models import MODELS, load_model
 from ardi_redact.processing import process_file
 
 
-def redact(path: Path, language: str) -> dict:
+def redact(path: Path, language: str, output: Path) -> dict:
     if language not in MODELS:
         return {"error": "Choose a supported document language."}
     if not path.is_file() or path.is_symlink():
         return {"error": "Choose an existing document file. Linked files are not supported."}
     if path.suffix.lower() not in SUPPORTED:
         return {"error": "Choose a DOCX, Markdown, TXT, SRT, or VTT document."}
+    if output.suffix.lower() != path.suffix.lower():
+        return {"error": "Save the redacted document with the same file extension as the original."}
     try:
         detector = Detector(load_model(language))
-        result = process_file(path, detector)
+        result = process_file(path, detector, output=output)
     except FileExistsError:
-        return {"error": "A redacted copy already exists. Move or rename it before trying again."}
+        return {"error": "A file already exists at this location. Choose a different name or folder."}
     except Exception:
         return {"error": "Could not process this document. Check its format and folder permissions."}
     return {"output": str(result.output.absolute()), "counts": dict(result.counts), "warnings": result.warnings}
@@ -37,7 +39,7 @@ def main() -> None:
                 load_model(model)
             response = {"ready": True}
         else:
-            response = redact(Path(sys.argv[1]), sys.argv[2])
+            response = redact(Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3]))
     except Exception:
         response = {"error": "The document engine could not start. Run setup to repair it."}
     print(json.dumps(response))

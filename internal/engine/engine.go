@@ -22,12 +22,14 @@ type Result struct {
 
 // Manager owns the app's private Python environment, never the user's Python.
 type Manager struct {
-	root       string
-	emit       func(Progress)
-	operation  sync.Mutex
-	state      sync.Mutex
-	cancel     context.CancelFunc
-	lastOutput string
+	root               string
+	emit               func(Progress)
+	operation          sync.Mutex
+	state              sync.Mutex
+	cancel             context.CancelFunc
+	lastOutput         string
+	temporaryDirectory string
+	pendingOutput      string
 }
 
 func New(root string, emit func(Progress)) *Manager { return &Manager{root: root, emit: emit} }

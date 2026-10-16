@@ -8,6 +8,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // App only adapts native desktop actions to the engine service.
@@ -36,6 +37,9 @@ func (a *App) shutdown(context.Context) {
 	if a.cancel != nil {
 		a.cancel()
 	}
+	if a.engine != nil {
+		a.engine.DiscardRedaction()
+	}
 }
 func (a *App) Status() (engine.Status, error) {
 	if a.startupError != nil {
@@ -60,6 +64,15 @@ func (a *App) SelectDocument() (string, error) {
 		Filters: []runtime.FileFilter{{DisplayName: "Documents", Pattern: "*.docx;*.md;*.txt;*.srt;*.vtt"}},
 	})
 }
+func (a *App) SelectOutput(path string) (string, error) {
+	ext := filepath.Ext(path)
+	return runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:            "Save redacted file",
+		DefaultDirectory: filepath.Dir(path),
+		DefaultFilename:  strings.TrimSuffix(filepath.Base(path), ext) + "_pii" + ext,
+		Filters:          []runtime.FileFilter{{DisplayName: "Document", Pattern: "*" + ext}},
+	})
+}
 func (a *App) Redact(path, language string) (engine.Result, error) {
 	if a.startupError != nil {
 		return engine.Result{}, a.startupError
@@ -67,7 +80,20 @@ func (a *App) Redact(path, language string) (engine.Result, error) {
 	return a.engine.Redact(a.ctx, path, language)
 }
 
-// Reveal only opens the folder of the last successfully generated document.
+func (a *App) SaveRedactedFile(output string) (string, error) {
+	if a.startupError != nil {
+		return "", a.startupError
+	}
+	return a.engine.SaveRedactedFile(a.ctx, output)
+}
+
+func (a *App) DiscardRedaction() {
+	if a.engine != nil {
+		a.engine.DiscardRedaction()
+	}
+}
+
+// Reveal only opens the folder of the last successfully saved document.
 func (a *App) RevealDocument() error {
 	if a.engine == nil {
 		return errors.New("Redact a document first.")

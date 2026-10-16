@@ -17,6 +17,7 @@ func TestSetupIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
 	defer cancel()
 	manager := New(root, func(p Progress) { t.Logf("%d%% %s", p.Percent, p.Stage) })
+	defer manager.DiscardRedaction()
 	if err := manager.Setup(ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -36,10 +37,14 @@ func TestSetupIntegration(t *testing.T) {
 		if result.Counts["EMAIL"] != 1 {
 			t.Fatalf("%s: email not redacted", language)
 		}
-		if _, err := manager.Redact(ctx, source, language); err == nil {
-			t.Fatal("existing output overwritten")
+		if result.Output != "" {
+			t.Fatal("temporary path exposed")
 		}
-		os.Remove(result.Output)
+		saved, err := manager.SaveRedactedFile(ctx, filepath.Join(filepath.Dir(source), "notes_pii.txt"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		os.Remove(saved)
 	}
 	contents, _ := os.ReadFile(source)
 	if string(contents) != original {

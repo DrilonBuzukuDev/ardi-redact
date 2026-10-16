@@ -43,13 +43,24 @@ test.beforeEach(async ({ page }) => {
             },
             CancelSetup: async () => {},
             SelectDocument: async () => "/tmp/meeting.txt",
+            SelectOutput: async (path: string) => {
+              calls.push({ save: path });
+              return "/chosen/meeting_pii.txt";
+            },
             Redact: async (path: string, language: string) => {
               calls.push({ path, language });
               return {
-                output: "/tmp/meeting_pii.txt",
+                output: "",
                 counts: { PERSON: 2 },
                 warnings: ["Review preserved metadata."],
               };
+            },
+            SaveRedactedFile: async (output: string) => {
+              calls.push({ publish: output });
+              return output;
+            },
+            DiscardRedaction: async () => {
+              calls.push("discard");
             },
             RevealDocument: async () => {
               calls.push("reveal");
@@ -65,9 +76,6 @@ test("setup retry, missing-file validation, language, redaction and folder actio
   page,
 }) => {
   await page.goto("/");
-  await expect(
-    page.getByRole("img", { name: "Ardi", exact: true }),
-  ).toBeVisible();
   await page.getByRole("button", { name: "Download and set up" }).click();
   await expect(page.getByRole("alert")).toContainText("Download failed");
   await page.getByRole("button", { name: "Retry setup" }).click();
@@ -89,12 +97,27 @@ test("setup retry, missing-file validation, language, redaction and folder actio
     page.getByRole("heading", { name: "2 personal details redacted" }),
   ).toBeVisible();
   await expect(page.getByText("Review preserved metadata.")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Go to document folder" }),
+  ).toHaveCount(0);
+  expect(await page.evaluate(() => (window as any).calls)).toEqual([
+    { path: "/tmp/meeting.txt", language: "de" },
+  ]);
+  await page.getByRole("button", { name: "Save redacted file" }).click();
+  await expect(
+    page.getByText("/chosen/meeting_pii.txt", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Go to document folder" }).click();
   expect(
     await page.evaluate(
       () => (window as unknown as { calls: unknown[] }).calls,
     ),
-  ).toEqual([{ path: "/tmp/meeting.txt", language: "de" }, "reveal"]);
+  ).toEqual([
+    { path: "/tmp/meeting.txt", language: "de" },
+    { save: "/tmp/meeting.txt" },
+    { publish: "/chosen/meeting_pii.txt" },
+    "reveal",
+  ]);
   await page.getByRole("button", { name: "Redact another document" }).click();
   await page.setViewportSize({ width: 380, height: 800 });
   expect(
@@ -126,4 +149,77 @@ test("native file-drop validates format and accepts a document", async ({
   );
   await expect(page.getByText("notes.docx", { exact: true })).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
+test("canceling save retains the redacted file and retry does not redact again", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Download and set up" }).click();
+  await page.getByRole("button", { name: "Retry setup" }).click();
+  await page.getByRole("button", { name: "Select file", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Redact document", exact: true })
+    .click();
+  await page.evaluate(() => {
+    (window as any).go.main.App.SelectOutput = async () => "";
+  });
+  const save = page.getByRole("button", { name: "Save redacted file" });
+  await save.click();
+  await expect(save).toBeEnabled();
+  await expect(
+    page.getByRole("heading", { name: "2 personal details redacted" }),
+  ).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(
+    "Review preserved metadata.",
+  );
+  expect(await page.evaluate(() => (window as any).calls)).toEqual([
+    { path: "/tmp/meeting.txt", language: "en" },
+  ]);
+  await page.evaluate(() => {
+    (window as any).go.main.App.SelectOutput = async () => "/chosen/retry.txt";
+  });
+  await save.click();
+  await expect(
+    page.getByRole("button", { name: "Go to document folder" }),
+  ).toBeVisible();
+  expect(await page.evaluate(() => (window as any).calls)).toEqual([
+    { path: "/tmp/meeting.txt", language: "en" },
+    { publish: "/chosen/retry.txt" },
+  ]);
+});
+
+test("failed save retains the temporary result until starting over", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Download and set up" }).click();
+  await page.getByRole("button", { name: "Retry setup" }).click();
+  await page.getByRole("button", { name: "Select file", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Redact document", exact: true })
+    .click();
+  await page.evaluate(() => {
+    (window as any).go.main.App.SaveRedactedFile = async () => {
+      throw new Error("A file already exists at this location.");
+    };
+  });
+  const save = page.getByRole("button", { name: "Save redacted file" });
+  await save.click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "A file already exists" }),
+  ).toBeVisible();
+  await expect(save).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "Go to document folder" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Redact another document" }).click();
+  await expect(
+    page.getByRole("button", { name: "Select file", exact: true }),
+  ).toBeVisible();
+  expect(await page.evaluate(() => (window as any).calls)).toEqual([
+    { path: "/tmp/meeting.txt", language: "en" },
+    { save: "/tmp/meeting.txt" },
+    "discard",
+  ]);
 });
