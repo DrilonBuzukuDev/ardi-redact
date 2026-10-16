@@ -11,9 +11,11 @@ import (
 	"strings"
 )
 
-var models = map[string]string{
-	"en": "en_core_web_md", "de": "de_core_news_md", "es": "es_core_news_md",
-	"fr": "fr_core_news_md", "it": "it_core_news_md",
+// Shared by setup, readiness checks, and redaction validation.
+var languages = map[string]struct{ Name, Model string }{
+	"en": {"English", "en_core_web_md"}, "de": {"German", "de_core_news_md"},
+	"es": {"Spanish", "es_core_news_md"}, "fr": {"French", "fr_core_news_md"},
+	"it": {"Italian", "it_core_news_md"},
 }
 
 func (m *Manager) CancelSetup() {
@@ -60,13 +62,13 @@ func (m *Manager) setup(ctx context.Context) error {
 	if err := m.runUV(ctx, "pip", "install", "--python", m.python(), "spacy==3.8.16", "python-docx==1.2.0", "lxml==6.1.3", "phonenumbers==9.0.41"); err != nil {
 		return errors.New("Could not install the document engine. Check your internet connection and retry setup.")
 	}
-	languages := []struct{ code, name string }{{"en", "English"}, {"de", "German"}, {"es", "Spanish"}, {"fr", "French"}, {"it", "Italian"}}
-	for i, language := range languages {
-		m.progress("Downloading "+language.name+" language support", 40+i*10)
-		model := models[language.code]
+	for i, code := range []string{"en", "de", "es", "fr", "it"} {
+		language := languages[code]
+		m.progress("Downloading "+language.Name+" language support", 40+i*10)
+		model := language.Model
 		url := fmt.Sprintf("https://github.com/explosion/spacy-models/releases/download/%s-3.8.0/%s-3.8.0-py3-none-any.whl", model, model)
 		if err := m.runUV(ctx, "pip", "install", "--python", m.python(), url); err != nil {
-			return fmt.Errorf("Could not download %s support. Check your internet connection and retry setup.", language.name)
+			return fmt.Errorf("Could not download %s support. Check your internet connection and retry setup.", language.Name)
 		}
 	}
 	m.progress("Checking the installation", 95)
