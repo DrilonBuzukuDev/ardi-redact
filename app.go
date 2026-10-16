@@ -1,8 +1,8 @@
 package main
 
 import (
-	"ardi-redact-wails/internal/engine"
-	"ardi-redact-wails/internal/process"
+	"ardi-redact/internal/engine"
+	"ardi-redact/internal/process"
 	"context"
 	"errors"
 	"github.com/wailsapp/wails/v2/pkg/runtime"

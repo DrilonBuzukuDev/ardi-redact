@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"ardi-redact-wails/internal/process"
+	"ardi-redact/internal/process"
 	"context"
 	"embed"
 	"encoding/json"

@@ -1,4 +1,4 @@
-module ardi-redact-wails
+module ardi-redact
 
 go 1.25.0
 
