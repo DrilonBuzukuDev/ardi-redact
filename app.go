@@ -8,7 +8,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"os"
 	"path/filepath"
-	goruntime "runtime"
 )
 
 // App only adapts native desktop actions to the engine service.
@@ -77,18 +76,5 @@ func (a *App) RevealDocument() error {
 	if path == "" {
 		return errors.New("Redact a document first.")
 	}
-	var name string
-	var args []string
-	switch goruntime.GOOS {
-	case "windows":
-		name, args = "explorer.exe", []string{"/select,", path}
-	case "darwin":
-		name, args = "open", []string{"-R", path}
-	default:
-		name, args = "xdg-open", []string{filepath.Dir(path)}
-	}
-	if err := process.Command(a.ctx, name, args...).Run(); err != nil {
-		return errors.New("Could not open the document folder. The saved path is shown in the app.")
-	}
-	return nil
+	return process.RevealDocument(a.ctx, path)
 }

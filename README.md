@@ -23,6 +23,12 @@ copy before sharing it: statistical detection can miss personal information.
 DOCX metadata and unsupported embedded content are preserved, with warnings.
 National phone-number interpretation uses the AT region, as in the original app.
 
+**Go to document folder** reveals the saved copy in Explorer on Windows or
+Finder on macOS. On Linux it asks the desktop's file manager to select the copy,
+then falls back to opening its folder with GIO or `xdg-open`. The Linux folder
+association can be checked with `xdg-mime query default inode/directory`
+(for example, `org.kde.dolphin.desktop` means Dolphin).
+
 **Repair setup** reruns dependency/model installation. Installed packages and
 cached downloads are reused. App data is stored in the OS user configuration
 directory under `ArdiRedact` (`~/.config/ArdiRedact` on Linux,
