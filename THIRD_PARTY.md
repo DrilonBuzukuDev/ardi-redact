@@ -7,7 +7,9 @@ The original MIT license is included at the repository root.
 
 `frontend/vendor/designsystem` is a source snapshot of the sibling Echo
 repository's `designsystem` package. It supplies Ardi components, colors, and
-typography. The Ardi logo also comes from Echo. No sibling checkout is needed
+typography. The launcher logo in `build/appicon.svg` is copied from Echo's
+`leads/public/favicon.svg`; the PNG and Windows ICO are rendered from it.
+No sibling checkout is needed
 to build or run this application. Sync changes deliberately rather than editing
 generated package contents inside node_modules.
 

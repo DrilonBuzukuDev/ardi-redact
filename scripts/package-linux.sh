@@ -8,6 +8,7 @@ package_dir="$(mktemp -d)"
 trap 'rm -rf "$package_dir"' EXIT
 install -Dm755 build/bin/ardi-redact "$package_dir/usr/bin/ardi-redact"
 install -Dm644 build/appicon.png "$package_dir/usr/share/icons/hicolor/512x512/apps/ardi-redact.png"
+install -Dm644 build/appicon.svg "$package_dir/usr/share/icons/hicolor/scalable/apps/ardi-redact.svg"
 mkdir -p "$package_dir/DEBIAN" "$package_dir/usr/share/applications"
 cat > "$package_dir/DEBIAN/control" <<EOF
 Package: ardi-redact
