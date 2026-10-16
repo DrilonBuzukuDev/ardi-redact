@@ -25,7 +25,7 @@ cat > "$package_dir/usr/share/applications/ardi-redact.desktop" <<'EOF'
 [Desktop Entry]
 Name=Ardi Redact
 Comment=Redact personal details from documents
-Exec=ardi-redact
+Exec=/usr/bin/ardi-redact
 Icon=ardi-redact
 Terminal=false
 Type=Application

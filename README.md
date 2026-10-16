@@ -127,6 +127,9 @@ The Debian package installs a launcher, icon, and application binary, and
 declares the WebKitGTK runtime dependency. No development packages are needed
 on the end user's computer.
 
+The launcher opens `/usr/bin/ardi-redact` explicitly so an older command-line
+installation in `~/.local/bin` cannot take precedence over the GUI.
+
 The Linux window uses the Ardi icon and the `ardi-redact` application identity.
 For Wayland taskbar icons, install the package and launch Ardi Redact from the
 application menu so the desktop can match the window to its launcher and icon.
