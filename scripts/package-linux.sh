@@ -7,7 +7,7 @@ architecture="$(dpkg --print-architecture)"
 package_dir="$(mktemp -d)"
 trap 'rm -rf "$package_dir"' EXIT
 install -Dm755 build/bin/ardi-redact "$package_dir/usr/bin/ardi-redact"
-install -Dm644 build/appicon.png "$package_dir/usr/share/icons/hicolor/256x256/apps/ardi-redact.png"
+install -Dm644 build/appicon.png "$package_dir/usr/share/icons/hicolor/512x512/apps/ardi-redact.png"
 mkdir -p "$package_dir/DEBIAN" "$package_dir/usr/share/applications"
 cat > "$package_dir/DEBIAN/control" <<EOF
 Package: ardi-redact
@@ -30,5 +30,6 @@ Icon=ardi-redact
 Terminal=false
 Type=Application
 Categories=Office;Utility;
+StartupWMClass=ardi-redact
 EOF
 dpkg-deb --build --root-owner-group "$package_dir" "build/bin/ardi-redact_${version}_${architecture}.deb"
