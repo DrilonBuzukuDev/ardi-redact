@@ -138,7 +138,7 @@ export const cssVariablesResolver = (currentTheme: MantineTheme) => ({
   },
   light: {
     "--mantine-color-text": currentTheme.colors.neutral[9],
-    "--mantine-color-body": currentTheme.colors.neutral[0],
+    "--mantine-color-body": "#fafafa",
     "--mantine-color-default": currentTheme.colors.neutral[0],
     "--mantine-color-default-hover": "rgba(0, 0, 0, 0.12)",
     "--mantine-color-default-color": currentTheme.colors.neutral[9],
